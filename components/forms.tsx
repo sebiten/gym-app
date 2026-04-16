@@ -38,7 +38,7 @@ export function ActionForm({
   return (
     <form action={formAction} className={className}>
       {children}
-      <div className="mt-5 flex items-center justify-between gap-4">
+      <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <SubmitButton label={buttonLabel} />
         {state.message ? (
           <p className={`text-sm ${state.ok ? "text-emerald-300" : "text-rose-300"}`}>

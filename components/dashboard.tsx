@@ -196,25 +196,26 @@ export function Dashboard({ data }: { data: DashboardData }) {
                   key={member.id}
                   className="rounded-3xl border border-white/10 bg-white/5 p-5"
                 >
-                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div>
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] xl:items-start">
+                    <div className="min-w-0">
                       <p className="text-xl font-semibold text-mist">{member.full_name}</p>
                       <p className="mt-1 text-sm text-mist/60">{member.email}</p>
                       <p className="mt-3 text-sm text-mist/70">
                         Vencio el {formatDate(member.current_plan_ends_at)}
                       </p>
                     </div>
-                    <ActionForm
-                      action={sendExpiredNotificationAction}
-                      buttonLabel="Informar por correo"
-                      className="min-w-full md:min-w-[260px]"
-                    >
-                      <input type="hidden" name="memberId" value={member.id} />
-                      <input type="hidden" name="email" value={member.email} />
-                      <input type="hidden" name="fullName" value={member.full_name} />
-                      <input type="hidden" name="endDate" value={member.current_plan_ends_at} />
-                    </ActionForm>
-                    <div className="grid gap-2 md:min-w-[260px]">
+                    <div className="grid w-full gap-3 xl:w-full 
+                    ">
+                      <ActionForm
+                        action={sendExpiredNotificationAction}
+                        buttonLabel="Informar por correo"
+                        className="grid gap-4 items-center justify-center"
+                      >
+                        <input type="hidden" name="memberId" value={member.id} />
+                        <input type="hidden" name="email" value={member.email} />
+                        <input type="hidden" name="fullName" value={member.full_name} />
+                        <input type="hidden" name="endDate" value={member.current_plan_ends_at} />
+                      </ActionForm>
                       <button
                         type="button"
                         onClick={async () => {
@@ -226,14 +227,18 @@ export function Dashboard({ data }: { data: DashboardData }) {
                           try {
                             await navigator.clipboard.writeText(message);
                             setCopiedMemberId(member.id);
-                            setTimeout(() => setCopiedMemberId((current) => (
-                              current === member.id ? null : current
-                            )), 2500);
+                            setTimeout(
+                              () =>
+                                setCopiedMemberId((current) =>
+                                  current === member.id ? null : current
+                                ),
+                              2500
+                            );
                           } catch {
                             setCopiedMemberId(null);
                           }
                         }}
-                        className="rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-mist transition hover:bg-white/10"
+                        className="w-full rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-mist transition hover:bg-white/10"
                       >
                         {copiedMemberId === member.id
                           ? "Mensaje copiado"
@@ -247,7 +252,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
                           )}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-center text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
+                          className="w-full rounded-full border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-center text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
                         >
                           Abrir WhatsApp
                         </a>

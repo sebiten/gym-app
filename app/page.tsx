@@ -16,12 +16,7 @@ export default function HomePage() {
 
           </nav>
           <div className="flex items-center gap-3">
-            <a
-              href="/demo"
-              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-mist transition hover:bg-white/10"
-            >
-              Demo
-            </a>
+
             <Link
               href="/login"
               className="rounded-full bg-gradient-to-r from-ember to-gold px-4 py-2 text-sm font-semibold text-night transition hover:brightness-110"
