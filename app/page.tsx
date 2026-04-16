@@ -13,7 +13,7 @@ export default function HomePage() {
             <a href="#funciones">Funciones</a>
             <a href="#planes">Planes</a>
             <a href="#contacto">Contacto</a>
-            <a href="/demo">Demo</a>
+
           </nav>
           <div className="flex items-center gap-3">
             <a
