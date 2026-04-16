@@ -55,19 +55,20 @@ export async function getDashboardData(): Promise<DashboardData> {
     return demoDashboardData;
   }
 
-  const { data, error } = await supabase
-    .from("member_status_view")
-    .select("*")
-    .order("current_plan_ends_at", { ascending: true });
-
   const monthStart = new Date();
   monthStart.setDate(1);
   const monthStartIso = monthStart.toISOString().slice(0, 10);
 
-  const { count: renewalsThisMonth } = await supabase
-    .from("memberships")
-    .select("*", { count: "exact", head: true })
-    .gte("start_date", monthStartIso);
+  const [{ data, error }, { count: renewalsThisMonth }] = await Promise.all([
+    supabase
+      .from("member_status_view")
+      .select("*")
+      .order("current_plan_ends_at", { ascending: true }),
+    supabase
+      .from("memberships")
+      .select("*", { count: "exact", head: true })
+      .gte("start_date", monthStartIso)
+  ]);
 
   if (error || !data) {
     return demoDashboardData;
@@ -89,11 +90,30 @@ export async function getDashboardData(): Promise<DashboardData> {
     notification_sent_at: member.notification_sent_at
   }));
 
+  const summary = members.reduce(
+    (accumulator, member) => {
+      if (member.status === "active") {
+        accumulator.activeMembers += 1;
+      } else if (member.status === "expiring") {
+        accumulator.expiringSoon += 1;
+      } else if (member.status === "expired") {
+        accumulator.expiredMembers += 1;
+      }
+
+      return accumulator;
+    },
+    {
+      activeMembers: 0,
+      expiringSoon: 0,
+      expiredMembers: 0
+    }
+  );
+
   return {
     totalMembers: members.length,
-    activeMembers: members.filter((member) => member.status === "active").length,
-    expiringSoon: members.filter((member) => member.status === "expiring").length,
-    expiredMembers: members.filter((member) => member.status === "expired").length,
+    activeMembers: summary.activeMembers,
+    expiringSoon: summary.expiringSoon,
+    expiredMembers: summary.expiredMembers,
     renewalsThisMonth: renewalsThisMonth ?? 0,
     members
   };
@@ -109,29 +129,33 @@ export async function getMemberDetail(memberId: string): Promise<MemberDetail | 
     return demoMemberDetails[memberId] ?? null;
   }
 
-  const { data: memberStatus, error: memberStatusError } = await supabase
-    .from("member_status_view")
-    .select("*")
-    .eq("id", memberId)
-    .maybeSingle();
-
-  const { data: memberBase, error: memberBaseError } = await supabase
-    .from("members")
-    .select("id, full_name, email, phone, document_id, notes, registered_at")
-    .eq("id", memberId)
-    .maybeSingle();
+  const [
+    { data: memberStatus, error: memberStatusError },
+    { data: memberBase, error: memberBaseError },
+    { data: membershipsData }
+  ] = await Promise.all([
+    supabase
+      .from("member_status_view")
+      .select("*")
+      .eq("id", memberId)
+      .maybeSingle(),
+    supabase
+      .from("members")
+      .select("id, full_name, email, phone, document_id, notes, registered_at")
+      .eq("id", memberId)
+      .maybeSingle(),
+    supabase
+      .from("memberships")
+      .select(
+        "id, start_date, end_date, months_paid, notification_sent_at, created_at, plans(name)"
+      )
+      .eq("member_id", memberId)
+      .order("start_date", { ascending: false })
+  ]);
 
   if (memberStatusError || memberBaseError || !memberBase) {
     return demoMemberDetails[memberId] ?? null;
   }
-
-  const { data: membershipsData } = await supabase
-    .from("memberships")
-    .select(
-      "id, start_date, end_date, months_paid, notification_sent_at, created_at, plans(name)"
-    )
-    .eq("member_id", memberId)
-    .order("start_date", { ascending: false });
 
   return {
     id: memberBase.id,
